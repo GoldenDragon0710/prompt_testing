@@ -189,9 +189,7 @@ export function Test_tab() {
             onChange={(e) => setInitPrompt(e.target.value)}
             className="w-full text-base"
             value={initPrompt}
-            labelProps={{
-              className: "before:content-none after:content-none",
-            }}
+            label="Prompt"
           />
           <div className="flex w-full justify-between">
             <Button onClick={handleOpen}>Cancel</Button>
