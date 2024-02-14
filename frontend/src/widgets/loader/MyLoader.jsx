@@ -2,10 +2,9 @@ import React from "react";
 import ClipLoader from "react-spinners/ClipLoader";
 
 export function MyLoader({ isloading }) {
-
   return (
-    <div className="w-full h-full bg-gray-200 opacity-30 fixed z-10">
-      <div className="h-full flex justify-center items-center">
+    <div className="fixed left-0 top-0 z-10 h-full w-full bg-gray-200 opacity-30">
+      <div className="flex h-full items-center justify-center">
         <ClipLoader
           color={"#020617"}
           loading={isloading}

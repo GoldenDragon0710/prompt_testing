@@ -5,7 +5,7 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY, // This is the default and can be omitted
 });
 
-const generateRes = async (req, res) => {
+exports.generateRes = async (req, res) => {
   const { list, sysPrompt } = req.body;
   let msgs = [
     {
@@ -45,8 +45,4 @@ const generateRes = async (req, res) => {
     console.error(err.message);
     res.status(500).json({ message: "Internal server error" });
   }
-};
-
-module.exports = {
-  generateRes,
 };

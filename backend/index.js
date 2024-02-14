@@ -4,13 +4,25 @@ require("dotenv").config();
 
 const app = express();
 
+// Connect Database
+const db = require("./models");
+db.sequelize
+  .sync()
+  .then(() => {
+    console.log("Synced db.");
+  })
+  .catch((err) => {
+    console.log("Failed to sync db: " + err.message);
+  });
+
 // Middleware
 app.use(cors());
 app.use(express.json());
 process.setMaxListeners(0);
 
 // Define Routes
-app.use("/api/chat", require("./routers/chatRouter"));
+app.use("/api/chat", require("./routers/chat.router"));
+app.use("/api/prompt", require("./routers/prompt.router"));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
