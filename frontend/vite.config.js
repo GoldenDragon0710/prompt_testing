@@ -22,8 +22,8 @@ export default defineConfig({
 
   define: {
     "process.env": {
-      REACT_APP_BASED_URL: "http://localhost:3000/api",
-      // REACT_APP_BASED_URL: "http://44.202.145.155/api",
+      // REACT_APP_BASED_URL: "http://localhost:3000/api",
+      REACT_APP_BASED_URL: "http://44.202.145.155/api",
     },
   },
 
