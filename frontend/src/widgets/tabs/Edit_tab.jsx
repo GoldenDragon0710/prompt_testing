@@ -83,7 +83,6 @@ export function Edit_tab() {
     setIsDisable(false);
     let list = [...projectlist];
     list[currentProjectIdx].prompt = original_prompt;
-    console.log(list);
     setProjectList[list];
   };
 
