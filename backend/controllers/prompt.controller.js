@@ -67,6 +67,23 @@ exports.update = async (req, res) => {
   }
 };
 
+// Find a Prompt by the id in the request
+exports.find = async (req, res) => {
+  const { name } = req.body;
+
+  try {
+    if (name) {
+      const row = await Prompt.findOne({
+        where: { name: name },
+      });
+      return res.status(200).json({ data: row });
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 // Delete a Prompt by the id in the request
 exports.delete = async (req, res) => {
   const { id } = req.body;
