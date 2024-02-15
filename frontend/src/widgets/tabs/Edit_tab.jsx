@@ -8,21 +8,22 @@ import {
   DialogHeader,
   DialogBody,
   Textarea,
-  Select,
-  Option,
+  Menu,
+  MenuHandler,
+  MenuList,
+  MenuItem,
+  Avatar,
 } from "@material-tailwind/react";
 import { notification } from "antd";
 import { MyLoader } from "@/widgets/loader/MyLoader";
 
 export function Edit_tab() {
+  let original_prompt = "";
   const [loading, setloading] = useState(false);
-  const [currentPrompt, setCurrentPrompt] = useState("");
   const [newProject, setNewProject] = useState("");
   const [newPrompt, setNewPrompt] = useState("");
   const [projectlist, setProjectList] = useState([]);
   const [isDisable, setIsDisable] = useState(false);
-  const [updatedPrompt, setUpdatedPrompt] = useState("");
-  const [name, setName] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [currentProjectIdx, setCurrentProjectIdx] = useState(0);
 
@@ -30,74 +31,60 @@ export function Edit_tab() {
     getAllProjects();
   }, []);
 
-  const getAllProjects = () => {
-    setloading(true);
-    axios
-      .get(`${process.env.REACT_APP_BASED_URL}/prompt`)
-      .then((res) => {
-        let list = [];
-        res.data.data.map((item) => {
-          let data = {
-            id: item.id,
-            name: item.name,
-            prompt: item.prompt,
-          };
-          list.push(data);
-        });
-        setProjectList(list);
-        setloading(false);
-      })
-      .catch((err) => {
-        setloading(false);
-        notification.warning({ message: "Internal Server Error" });
-      });
-  };
-
-  const handleSelectProject = (name) => {
-    if (projectlist) {
-      projectlist.map((item, idx) => {
-        if (item.name === name) {
-          setUpdatedPrompt(projectlist[idx].prompt);
-          setName(name);
-          setCurrentProjectIdx(idx);
-        }
-      });
+  const getAllProjects = async () => {
+    try {
+      setloading(true);
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASED_URL}/prompt`
+      );
+      const list = response.data.data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        prompt: item.prompt,
+      }));
+      setProjectList(list);
+    } catch (err) {
+      notification.warning({ message: "Internal Server Error" });
+    } finally {
+      setloading(false);
     }
   };
 
-  const handleSave = () => {
-    setCurrentPrompt(updatedPrompt);
-    const data = {
-      id: projectlist[currentProjectIdx].id,
-      prompt: updatedPrompt,
-    };
-    setloading(true);
-    axios
-      .post(`${process.env.REACT_APP_BASED_URL}/prompt/update`, data)
-      .then((res) => {
-        let list = [];
-        res.data.data.map((item) => {
-          let data = {
-            id: item.id,
-            name: item.name,
-            prompt: item.prompt,
-          };
-          list.push(data);
-        });
-        setProjectList(list);
-        setloading(false);
-        notification.success({ message: "Updated successfully" });
-      })
-      .catch((err) => {
-        setloading(false);
-        notification.warning({ message: "Internal Server Error" });
-      });
+  const handleSelectProject = (idx) => {
+    original_prompt = projectlist[idx].prompt;
+    setCurrentProjectIdx(idx);
+  };
+
+  const handleSave = async () => {
+    try {
+      setloading(true);
+      const response = await axios.post(
+        `${process.env.REACT_APP_BASED_URL}/prompt/update`,
+        {
+          id: projectlist[currentProjectIdx].id,
+          prompt: projectlist[currentProjectIdx].prompt,
+        }
+      );
+      const list = response.data.data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        prompt: item.prompt,
+      }));
+      setProjectList(list);
+    } catch (err) {
+      notification.warning({ message: "Internal Server Error" });
+    } finally {
+      setloading(false);
+    }
     setIsDisable(false);
   };
 
   const handleCancel = () => {
     setIsDisable(false);
-    setUpdatedPrompt(currentPrompt);
+    let list = [...projectlist];
+    list[currentProjectIdx].prompt = original_prompt;
+    console.log(list);
+    setProjectList[list];
   };
 
   const handleAddable = () => {
@@ -110,44 +97,64 @@ export function Edit_tab() {
     setNewPrompt("");
   };
 
-  const createNewPrompt = () => {
+  const createNewPrompt = async () => {
     setIsOpen(!isOpen);
     if (newPrompt == "") {
-      notification.warning({ message: "Please enter the prompt." });
+      notification.warning({ message: "Please enter the prompt" });
       return;
     }
     if (newProject == "") {
-      notification.warning({ message: "Please enter the project name." });
+      notification.warning({ message: "Please enter the project name" });
       return;
     }
-    const data = {
-      name: newProject,
-      prompt: newPrompt,
-    };
-    setloading(true);
-    axios
-      .post(`${process.env.REACT_APP_BASED_URL}/prompt`, data)
-      .then((res) => {
-        let list = [];
-        res.data.data.map((item) => {
-          let data = {
-            id: item.id,
-            name: item.name,
-            prompt: item.prompt,
-          };
-          list.push(data);
-        });
-        setProjectList(list);
-        setloading(false);
-        notification.success({
-          message: "Created successfully",
-        });
-      })
-      .catch((err) => {
-        setloading(false);
-        console.log(err);
-        notification.warning({ message: "Internal Server Error" });
-      });
+    try {
+      setloading(true);
+      const response = await axios.post(
+        `${process.env.REACT_APP_BASED_URL}/prompt`,
+        {
+          name: newProject,
+          prompt: newPrompt,
+        }
+      );
+      const list = response.data.data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        prompt: item.prompt,
+      }));
+      setProjectList(list);
+      notification.success({ message: "Created successfully" });
+    } catch (err) {
+      notification.warning({ message: "Internal Server Error" });
+    } finally {
+      setloading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (currentProjectIdx == null) {
+      notification.warning({ message: "Please select a project" });
+      return;
+    }
+    try {
+      setloading(true);
+      const response = await axios.post(
+        `${process.env.REACT_APP_BASED_URL}/prompt/delete`,
+        {
+          id: projectlist[currentProjectIdx].id,
+        }
+      );
+      const list = response.data.data.map((item) => ({
+        id: item.id,
+        name: item.name,
+        prompt: item.prompt,
+      }));
+      setProjectList(list);
+      notification.success({ message: "Deleted successfully" });
+    } catch (err) {
+      notification.warning({ message: "Internal Server Error" });
+    } finally {
+      setloading(false);
+    }
   };
 
   return (
@@ -155,19 +162,37 @@ export function Edit_tab() {
       <div className="edit-tab relative flex h-full w-full flex-col">
         {loading && <MyLoader isloading={loading} />}
         <div className="container mx-auto flex h-full w-full flex-col justify-between px-2 py-5">
-          <div className="mx-auto flex w-1/2">
-            <Select label="Select a project" onChange={handleSelectProject}>
-              {projectlist &&
-                projectlist.map((item, idx) => {
-                  return (
-                    <Option key={idx} value={item.name}>
-                      {item.name}
-                    </Option>
-                  );
-                })}
-            </Select>
-            <Button onClick={handleAddable} className="mx-2 w-20 normal-case">
-              Add
+          <div className="mx-auto flex w-1/3">
+            <Menu>
+              <MenuHandler>
+                <Button
+                  variant="outlined"
+                  className="mx-auto w-full max-w-[300px]"
+                >
+                  {projectlist.length > 0
+                    ? projectlist[currentProjectIdx].name
+                    : "Create a new project"}
+                </Button>
+              </MenuHandler>
+              <MenuList>
+                {projectlist.length > 0 &&
+                  projectlist.map((item, idx) => {
+                    return (
+                      <MenuItem key={idx}>
+                        <Typography onClick={() => handleSelectProject(idx)}>
+                          {item.name}
+                        </Typography>
+                      </MenuItem>
+                    );
+                  })}
+              </MenuList>
+            </Menu>
+            <Button
+              onClick={handleAddable}
+              variant="text"
+              className="mx-2 w-12 p-0 normal-case"
+            >
+              <Avatar src="img/plus.svg" className="h-auto w-5"></Avatar>
             </Button>
           </div>
           <div className="mt-2 py-5">
@@ -176,7 +201,11 @@ export function Edit_tab() {
                 Name
               </Typography>
               <Input
-                value={name}
+                value={
+                  projectlist.length != 0
+                    ? projectlist[currentProjectIdx].name
+                    : ""
+                }
                 className="w-full rounded px-5 text-base"
                 placeholder="Project name..."
                 disabled
@@ -189,12 +218,18 @@ export function Edit_tab() {
               <Textarea
                 rows={20}
                 onChange={(e) => {
-                  setUpdatedPrompt(e.target.value);
-                  if (name != "") {
+                  let list = [...projectlist];
+                  if (list[currentProjectIdx].name != "") {
                     setIsDisable(true);
                   }
+                  list[currentProjectIdx].prompt = e.target.value;
+                  setProjectList(list);
                 }}
-                value={updatedPrompt}
+                value={
+                  projectlist.length != 0
+                    ? projectlist[currentProjectIdx].prompt
+                    : ""
+                }
                 label="Prompt"
                 className="w-full rounded px-5 text-base"
               />
@@ -210,6 +245,9 @@ export function Edit_tab() {
             </Button>
             <Button className="w-32" onClick={handleSave} disabled={!isDisable}>
               Save
+            </Button>
+            <Button className="w-32" onClick={handleDelete}>
+              Delete
             </Button>
           </div>
         </div>

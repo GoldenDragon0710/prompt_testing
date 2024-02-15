@@ -66,3 +66,23 @@ exports.update = async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+// Delete a Prompt by the id in the request
+exports.delete = async (req, res) => {
+  const { id } = req.body;
+
+  try {
+    const deleted_result = await Prompt.destroy({
+      where: { id: id },
+    });
+    if (deleted_result == 1) {
+      const rows = await Prompt.findAll({
+        order: [["name", "ASC"]],
+      });
+      return res.status(200).json({ data: rows });
+    }
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
