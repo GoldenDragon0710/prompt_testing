@@ -166,7 +166,7 @@ export function Edit_tab() {
               <MenuHandler>
                 <Button
                   variant="outlined"
-                  className="mx-auto w-full max-w-[300px]"
+                  className="mx-auto w-full max-w-[300px] text-lg normal-case"
                 >
                   {projectlist.length > 0
                     ? projectlist[currentProjectIdx].name
